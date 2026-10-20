@@ -1,0 +1,10 @@
+import {build} from 'esbuild';
+import fs from 'fs';
+import path from 'path';
+const root=path.resolve(import.meta.dirname,'..');
+const r=await build({entryPoints:[path.join(root,'src/main.js')],bundle:true,minify:true,format:'iife',target:'es2020',write:false,nodePaths:[path.join(root,'build/node_modules')],legalComments:'none',logLevel:'info'});
+let js=r.outputFiles[0].text.replace(/<\/script/gi,'<\\/script');
+const tpl=fs.readFileSync(path.join(root,'src/template.html'),'utf8');
+const [a,b]=tpl.split('/*__BUNDLE__*/');
+fs.writeFileSync(path.join(root,'index.html'),a+js+b);
+console.log('index.html',(fs.statSync(path.join(root,'index.html')).size/1024).toFixed(0)+' KB');
