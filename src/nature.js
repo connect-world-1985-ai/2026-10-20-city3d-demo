@@ -70,10 +70,10 @@ export function buildParks(W){
       continue;
     }
     if(theme==='pond'){
-      disc(waterG,cx,cz,15,SLAB-.25,[1,1,1],64,11);
-      const rim=new THREE.TorusGeometry(1,.28,6,72);rim.rotateX(-Math.PI/2);rim.scale(15,1,11);ch.trim.add(rim,M(cx,SLAB+.02,cz),lin('#fbe9e4'));rim.dispose();
+      disc(waterG,cx,cz,15,SLAB+.05,[1,1,1],64,11);
+      const rim=new THREE.TorusGeometry(1,.28,6,72);rim.rotateX(-Math.PI/2);rim.scale(15,1,11);ch.trim.add(rim,M(cx,SLAB+.08,cz),lin('#fbe9e4'));rim.dispose();
       for(let k=0;k<6;k++)W.ducks.push({cx,cz,r:4+rng()*7,a:rng()*6.28,s:(rng()<.5?-1:1)*(.15+rng()*.12),k});
-      for(let k=0;k<14;k++){const a=rng()*6.28,r=.5+rng()*.4;W.flowers.push({x:cx+Math.cos(a)*13*r,z:cz+Math.sin(a)*9.5*r,y:SLAB-.22,pad:true,c:lin('#7bcf6a')});}
+      for(let k=0;k<14;k++){const a=rng()*6.28,r=.5+rng()*.4;W.flowers.push({x:cx+Math.cos(a)*13*r,z:cz+Math.sin(a)*9.5*r,y:SLAB+.07,pad:true,c:lin('#7bcf6a')});}
       featR=16;W.circles.push({x:cx,z:cz,r:13,ellipse:[15.6,11.6]});
     }else if(theme==='fountain'){
       disc(paths,cx,cz,10,PY+.004,PATH2,48);buildFountain(W,cx,cz,waterG);featR=11;W.circles.push({x:cx,z:cz,r:6.6});
@@ -113,7 +113,7 @@ export function buildParks(W){
   const gm=new THREE.Mesh(grass.geometry(),new THREE.MeshStandardMaterial({map:grassTex,vertexColors:true,roughness:1,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));gm.receiveShadow=true;root.add(gm);
   W.mats.grassTex=grassTex;
   const pm=new THREE.Mesh(paths.geometry(),new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));pm.receiveShadow=true;root.add(pm);
-  if(waterG.count){const wm=new THREE.Mesh(waterG.geometry(),water);wm.receiveShadow=true;root.add(wm);}
+  if(waterG.count){water.polygonOffset=true;water.polygonOffsetFactor=-3;water.polygonOffsetUnits=-3;const wm=new THREE.Mesh(waterG.geometry(),water);wm.receiveShadow=true;root.add(wm);}
 }
 function bedFlowers(rng,cx,cz,r,n){const out=[];const pal=JELLY.concat([WHITE]);for(let k=0;k<n;k++){const a=rng()*6.28,d=Math.sqrt(rng())*r;out.push({x:cx+Math.cos(a)*d,z:cz+Math.sin(a)*d,y:SLAB,c:pal[(rng()*pal.length)|0]});}return out;}
 
@@ -247,13 +247,13 @@ export function buildTrees(W){
   const puffFar=mergeGeometries([trunk(2.6,.24),blob(2.2,0,3.9,0,1)]);
   const coneNear=(()=>{const parts=[trunk(1.6,.2)];[[2,1.6,2.2],[1.6,3,2],[1.1,4.3,1.8]].forEach(([r,y,h])=>{const c=new THREE.ConeGeometry(r,h,10,2).translate(0,y+h/2-.3,0);paint(c,(x,yy)=>{const t=(yy-y)/h;const v=.7+.3*t;return[v,v,v];});parts.push(fol(c,1));});return mergeGeometries(parts);})();
   const coneFar=mergeGeometries([trunk(1.6,.22),fol(paint(new THREE.ConeGeometry(2,4.6,7).translate(0,3.6,0),[.85,.85,.85]),1)]);
-  const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.85});
+  const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.85,shadowSide:THREE.BackSide});
   hook(mat,'tree',s=>{s.uniforms.uTime=U.uTime;
     s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nattribute float fol;uniform float uTime;')
       .replace('#include <color_vertex>','vColor=vec3(color);\n#ifdef USE_INSTANCING_COLOR\nvColor*=mix(vec3(1.),instanceColor,fol);\n#endif')
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n{vec2 ip=instanceMatrix[3].xz;float sw=sin(uTime*1.3+ip.x*.11+ip.y*.07)*.5+sin(uTime*2.3+ip.y*.13)*.25;transformed.xz+=vec2(sw,sw*.6)*.06*fol*max(0.,position.y-2.);}\n#endif');});
-  const puff=new Instances([{geo:puffNear,mat,max:190},{geo:puffFar,mat,max:1300}]);
-  const cone=new Instances([{geo:coneNear,mat,max:190},{geo:coneFar,mat,max:1300}]);
+  const puff=new Instances([{geo:puffNear,mat,max:190},{geo:puffFar,mat,max:1300,shadow:false}]);
+  const cone=new Instances([{geo:coneNear,mat,max:190},{geo:coneFar,mat,max:1300,shadow:false}]);
   for(const t of W.trees){
     const pal=t.kind==='blossom'?BLOSSOM:rng()<.12?OTHER:GREENS;const c=pal[(rng()*pal.length)|0];
     const I=t.kind==='cone'?cone:puff;I.add(t.x,t.y,t.z,rng()*6.28,t.s*(.9+rng()*.2),c,null,t.s*(.9+rng()*.3));
@@ -296,6 +296,6 @@ export function buildTrees(W){
     const dm=new THREE.InstancedMesh(dg.geometry(),new THREE.MeshStandardMaterial({vertexColors:true,roughness:.3}),W.ducks.length);
     dm.frustumCulled=false;dm.castShadow=true;root.add(dm);
     const m=new THREE.Matrix4(),q=new THREE.Quaternion(),p=new THREE.Vector3(),s=new THREE.Vector3(1,1,1),Yax=new THREE.Vector3(0,1,0);let t=0;
-    W.updaters.push(dt=>{t+=dt;W.ducks.forEach((d,i)=>{d.a+=d.s*dt;p.set(d.cx+Math.cos(d.a)*d.r,SLAB-.3+Math.sin(t*2+i)*.04,d.cz+Math.sin(d.a)*d.r*.7);q.setFromAxisAngle(Yax,-d.a-Math.sign(d.s)*Math.PI/2);m.compose(p,q,s);dm.setMatrixAt(i,m);});dm.instanceMatrix.needsUpdate=true;});
+    W.updaters.push(dt=>{t+=dt;W.ducks.forEach((d,i)=>{d.a+=d.s*dt;p.set(d.cx+Math.cos(d.a)*d.r,SLAB-.08+Math.sin(t*2+i)*.04,d.cz+Math.sin(d.a)*d.r*.7);q.setFromAxisAngle(Yax,-d.a-Math.sign(d.s)*Math.PI/2);m.compose(p,q,s);dm.setMatrixAt(i,m);});dm.instanceMatrix.needsUpdate=true;});
   }
 }

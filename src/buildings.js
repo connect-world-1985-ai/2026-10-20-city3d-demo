@@ -79,12 +79,12 @@ function cap(gb,edges,y,col,uvs=.25){
 }
 // puffy icing rim with drips hanging over the wall top
 function icing(gb,edges,yT,col,rng,dripAmt=1){
-  const path=perim(edges,.4);
+  const ST=.55,path=perim(edges,ST);
   const drips=[];let s=0;
-  while(s<path.length*.4){s+=.5+rng()*1.6;drips.push({s,w:.35+rng()*.45,l:(.25+Math.pow(rng(),1.5)*1.7)*dripAmt});}
-  const tot=path.length*.4;
-  const dr=i=>{const x=i*.4;let d=0;for(const q of drips){let dx=Math.abs(x-q.s);dx=Math.min(dx,tot-dx);if(dx<q.w)d=Math.max(d,q.l*Math.cos(dx/q.w*Math.PI/2));}return d;};
-  ring(gb,path,i=>{const d=dr(i);return [[0,yT-.36-d],[.16,yT-.38-d],[.3,yT-.3-d*.7],[.34,yT-.05],[.26,yT+.22],[0,yT+.34],[-.4,yT+.18]];},col);
+  while(s<path.length*ST){s+=.5+rng()*1.6;drips.push({s,w:.35+rng()*.45,l:(.25+Math.pow(rng(),1.5)*1.7)*dripAmt});}
+  const tot=path.length*ST;
+  const dr=i=>{const x=i*ST;let d=0;for(const q of drips){let dx=Math.abs(x-q.s);dx=Math.min(dx,tot-dx);if(dx<q.w)d=Math.max(d,q.l*Math.cos(dx/q.w*Math.PI/2));}return d;};
+  ring(gb,path,i=>{const d=dr(i);return [[0,yT-.36-d],[.2,yT-.36-d],[.33,yT-.2-d*.6],[.32,yT+.12],[.05,yT+.34],[-.4,yT+.18]];},col);
 }
 
 /* ---------- walls ---------- */
@@ -118,7 +118,7 @@ function swirl(gb,cx,cz,y,R,col,rng){
   let yy=y,r=R;
   for(let k=0;k<5;k++){
     const tube=r*.36;yy+=tube*.95;
-    const t=new THREE.TorusGeometry(r*.8,tube,10,Math.max(16,Math.round(r*8)));t.rotateX(-Math.PI/2);
+    const t=new THREE.TorusGeometry(r*.8,tube,8,Math.max(14,Math.round(r*6)));t.rotateX(-Math.PI/2);
     gb.add(t,M(cx,yy,cz,1,1.15,1,rng()*6),col);t.dispose();
     yy+=tube*.25;r*=.74;
   }

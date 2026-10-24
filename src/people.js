@@ -12,11 +12,11 @@ function personGeo(){
   const parts=[];
   const P=(g,id,c=[1,1,1])=>{g=g.index?g.toNonIndexed():g;const n=g.attributes.position.count;g.setAttribute('part',new THREE.Float32BufferAttribute(new Array(n).fill(id),1));
     const col=new Float32Array(n*3);for(let i=0;i<n;i++){col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];}g.setAttribute('color',new THREE.BufferAttribute(col,3));parts.push(g);};
-  P(new THREE.CapsuleGeometry(.2,.42,3,8).scale(1,1,.8).translate(0,1.2,0),0);
-  P(new THREE.SphereGeometry(.15,10,8).translate(0,1.66,0),5);
-  P(new THREE.SphereGeometry(.155,10,6,0,Math.PI*2,0,Math.PI*.55).translate(-.015,1.68,0),6);
-  for(const [id,z] of [[1,-.1],[2,.1]])P(new THREE.CapsuleGeometry(.075,.62,2,6).translate(0,.47,z),id);
-  for(const [id,z] of [[3,-.27],[4,.27]])P(new THREE.CapsuleGeometry(.06,.5,2,6).translate(0,1.12,z),id);
+  P(new THREE.CapsuleGeometry(.2,.42,2,7).scale(1,1,.8).translate(0,1.2,0),0);
+  P(new THREE.SphereGeometry(.15,8,6).translate(0,1.66,0),5);
+  P(new THREE.SphereGeometry(.155,8,4,0,Math.PI*2,0,Math.PI*.55).translate(-.015,1.68,0),6);
+  for(const [id,z] of [[1,-.1],[2,.1]])P(new THREE.CapsuleGeometry(.075,.62,1,5).translate(0,.47,z),id);
+  for(const [id,z] of [[3,-.27],[4,.27]])P(new THREE.CapsuleGeometry(.06,.5,1,5).translate(0,1.12,z),id);
   return mergeGeometries(parts);
 }
 

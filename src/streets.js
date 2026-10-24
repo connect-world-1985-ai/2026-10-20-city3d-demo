@@ -155,8 +155,8 @@ export function buildLamps(W){
   for(const p of W.farLamps)lamps.push(p);
   const stripes=(x,y,z)=>{const a=Math.atan2(z,x)/(Math.PI*2);return (Math.floor((a+y*.55)*2+40)%2)?lin('#ff4f7b'):lin('#fff7f2');};
   const caneGeo=(()=>{
-    const pole=paintF(new THREE.CylinderGeometry(.11,.13,6.2,12,40).translate(0,3.1,0),stripes);
-    const hook=paintF(new THREE.TorusGeometry(.75,.11,8,16,Math.PI).translate(.75,6.2,0),(x,y,z,t)=>((t>>4)%2)?lin('#ff4f7b'):lin('#fff7f2'));
+    const pole=paintF(new THREE.CylinderGeometry(.11,.13,6.2,8,26).translate(0,3.1,0),stripes);
+    const hook=paintF(new THREE.TorusGeometry(.75,.11,6,12,Math.PI).translate(.75,6.2,0),(x,y,z,t)=>((t>>4)%2)?lin('#ff4f7b'):lin('#fff7f2'));
     const base=new THREE.CylinderGeometry(.3,.38,.5,8).translate(0,.25,0);paint(base,lin('#fff7f2'));
     const cap=new THREE.ConeGeometry(.42,.42,8).translate(1.5,5.62,0);paint(cap,lin('#ff4f7b'));
     const rod=new THREE.CylinderGeometry(.03,.03,.5,4).translate(1.5,5.95,0);paint(rod,lin('#5a4048'));
@@ -165,7 +165,7 @@ export function buildLamps(W){
   const farGeo=(()=>{const g=new THREE.BoxGeometry(.22,6.4,.22).translate(0,3.2,0);paint(g,lin('#ffd0dc'));const h=new THREE.BoxGeometry(1.6,.18,.18).translate(.8,6.3,0);paint(h,lin('#ff4f7b'));return mergeGeometries([g.toNonIndexed(),h.toNonIndexed()]);})();
   const lampMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.25});
   const lampI=new Instances([{geo:caneGeo,mat:lampMat,max:200},{geo:farGeo,mat:lampMat,max:650,shadow:false}]);
-  const bulbGeo=new THREE.SphereGeometry(.3,10,6).scale(1,1.15,1).translate(1.5,5.25,0);
+  const bulbGeo=new THREE.SphereGeometry(.3,7,4).scale(1,1.15,1).translate(1.5,5.25,0);
   const bulbMat=new THREE.MeshBasicMaterial({color:0xffffff});W.mats.bulb=bulbMat;
   const bulbI=new Instances([{geo:bulbGeo,mat:bulbMat,max:900,shadow:false}]);
   const pools=[];

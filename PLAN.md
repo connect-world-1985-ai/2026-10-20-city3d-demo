@@ -1,6 +1,6 @@
 # Dusk City v2: improvement plan
 
-Status: **draft for review**. Nothing here is implemented yet.
+Status: **implemented** (see [Implementation status](#implementation-status) at the end). Style decision from review: **sweet / candy town**.
 Branch: `claude/beautiful-hawking-60ityz`
 
 ## Goal
@@ -107,3 +107,19 @@ I suggest doing Phases 0 → 1 → 2 first, since they change the look the most,
 4. **Waterfront:** OK to replace one edge of blocks with a river or bay? It changes the map and the mini-map.
 5. **Size budget:** is about 1.2 MB for `index.html` acceptable, or must it stay near 600 KB?
 6. **Mobile:** must mobile keep the same feature set, or is "looks good on desktop, runs acceptably on mobile at Low" enough?
+
+## Implementation status
+
+Decisions taken after review: sweet (candy, pastel) style; all phases; stylised rather than photoreal; a river along the south edge (the 9×9 grid is kept, so the map does not lose blocks); `index.html` stays a single self-contained file (about 0.73 MB); mobile starts at Medium and drops automatically.
+
+| Phase | Done | Notes |
+|---|---|---|
+| 0 Tooling | yes | `build/shots.mjs` renders 12 fixed review cameras; `build/probe.mjs` runs an ad-hoc script and screenshots. Old Python scripts removed. |
+| 1 Rendering | yes | GTAO (half or full resolution by tier), height fog with sun in-scattering patched into every material, sky with sun, moon and stars, 3D clouds, continuous time of day with 12 keyframes, grading (saturation, tint, vignette, grain), light shafts. **Deviation:** one 4096² shadow map fitted to the view instead of cascades; at these view distances it was sharp enough and avoided patching every material. |
+| 2 Buildings | yes | One facade shader: per-building window grids (punched, curtain wall, ribbon, chocolate panels, houses with shutters and flower boxes), interior-mapped rooms, shopfronts with candy shelves, per-window lights that switch on through dusk, distance fade. Frosting drips, cornices, balconies, awnings, neon and blade signs, crowns (soft-serve swirl, striped dome, candy spire, Art Deco steps, helipad, water tower, gable, rooftop garden or pool). Four districts. Sugar Spire landmark. 3×3 chunking for culling. |
+| 3 Streets and life | yes | Rounded curbs with candy stripes, crossings, stop lines, manholes, puddles that shine at night, traffic signals (GPU and CPU share one cycle), seven vehicle types with rolling wheels, brake lights and headlight beams, queueing at red lights, pedestrians with a walk cycle (some with balloons), benches, bins, hydrants, bollards, planters, bus stops, café terraces, birds. **Not done:** parked cars and pedestrians crossing streets. |
+| 4 Nature and water | yes | Puffy trees (four palettes, wind sway, two LODs), themed parks (fair with Ferris wheel and carousel, cake fountain, duck pond, lollipop grove, gardens with a giant cupcake, bandstand), river with planar reflections, promenade, arched suspension bridge, boats, far-bank road and cottages, noise terrain with pastel and cream-capped hills. |
+| 5 Night | yes | Light pools and glow sprites, flickering neon, aviation beacons, glowing landmark crown, lit bridge cables, fireworks over the river. **Deviation:** lamps do not cast real light on facades; facades get a soft street-level uplight instead. |
+| 6 Presentation | yes | Time slider and play, cinematic tour (T), photo mode with tilt-shift (P), quality tiers (Q), new help, README, screenshots. **Deviation:** tilt-shift instead of depth of field, because it suits the miniature look and is cheaper. |
+
+Measured in the cloud container (software renderer, so only relative numbers are meaningful): build 1.6 s, about 2.3M triangles in the main pass and 10M per frame including the shadow, AO and reflection passes, about 600 draw calls per frame across all passes.

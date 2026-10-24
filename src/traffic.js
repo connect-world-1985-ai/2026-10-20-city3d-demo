@@ -7,7 +7,7 @@ import {deckY} from './water.js';
 import * as T from './textures.js';
 
 const DARK=lin('#2a2633'),GLASS=lin('#3d4a66'),CHROME=lin('#e8e8ee'),WH=[1,1,1];
-const RB=(l,h,w,r)=>new RoundedBoxGeometry(l,h,w,2,r);
+const RB=(l,h,w,r)=>new RoundedBoxGeometry(l,h,w,l>2.5?2:1,r);
 function carType(name){
   const g=new GB();let L,wheels,wr=.36,lights,body=WH;
   const add=(geo,x,y,z,c)=>{g.add(geo,M(x,y,z),c);geo.dispose();};
@@ -121,7 +121,7 @@ export function buildTraffic(W){
   for(const n in types){const list=cars.filter(c=>c.type===n);if(!list.length)continue;
     const m=new THREE.InstancedMesh(types[n].geo,bodyMat,list.length);m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;
     list.forEach((c,i)=>{c.idx=i;m.setColorAt(i,c.col);});root.add(m);byType[n]=m;}
-  const wheelG=(()=>{const g=new GB();const t=new THREE.CylinderGeometry(1,1,.28,14);t.rotateX(Math.PI/2);g.add(t,null,(v)=>Math.hypot(v.x,v.y)<.55&&Math.abs(v.z)>.12?CHROME:lin('#26222b'));return g.geometry();})();
+  const wheelG=(()=>{const g=new GB();const t=new THREE.CylinderGeometry(1,1,.28,10);t.rotateX(Math.PI/2);g.add(t,null,(v)=>Math.hypot(v.x,v.y)<.55&&Math.abs(v.z)>.12?CHROME:lin('#26222b'));return g.geometry();})();
   const wheels=new THREE.InstancedMesh(wheelG,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.6}),cars.length*4);wheels.frustumCulled=false;wheels.castShadow=true;root.add(wheels);
   const lightMat=new THREE.MeshBasicMaterial({color:0xffffff});W.mats.carLights=lightMat;
   const lights=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),lightMat,cars.length*4);lights.frustumCulled=false;root.add(lights);
