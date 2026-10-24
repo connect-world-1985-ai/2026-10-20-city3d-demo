@@ -31,12 +31,13 @@ Debug API: `window.__city` (setMode, setTod, setHour, teleport, toggleTour, togg
 ## Files
 - `index.html`: the built, self-contained page (served by Pages).
 - `src/`: source. `main.js` (app, controls, UI), `city.js` (assembly, collision), `layout.js`, `buildings.js`, `facade.js`, `landmark.js`, `streets.js`, `traffic.js`, `people.js`, `nature.js`, `water.js`, `landscape.js`, `sky.js`, `tod.js`, `post.js`, `fx.js`, `textures.js`, `util.js`, `template.html`.
-- `build/`: `build.mjs` bundler, `shots.mjs` (renders the fixed set of review cameras), `probe.mjs` (ad-hoc screenshot with a script).
+- `build/`: `build.mjs` bundler, `shots.mjs` (renders the fixed set of review cameras), `test.mjs` (smoke test: keys, time of day, walking and collision, bridge, tour, photo mode, quality, mini-map, traffic), `probe.mjs` (ad-hoc screenshot with a script).
 - `screenshots/`: sample views.
 - `PLAN.md`: the improvement plan this version implements.
 
 ## Rebuild
 ```
 cd build && npm i && node build.mjs   # regenerates ../index.html
-node shots.mjs                        # regenerates ../screenshots (uses the pre-installed Chromium via Playwright)
+node test.mjs                         # smoke test (Playwright + Chromium)
+node shots.mjs                        # regenerates ../screenshots
 ```
