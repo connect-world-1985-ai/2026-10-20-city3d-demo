@@ -1,86 +1,65 @@
 import * as THREE from 'three';
 import {mulberry32,canvas,tex} from './util.js';
 
-const CELLS=8, S=1024, C=S/CELLS;
-
-function speckle(ctx,rng,w,h,n,alpha){
-  for(let i=0;i<n;i++){const v=rng()<.5?0:255;ctx.fillStyle=`rgba(${v},${v},${v},${alpha*rng()})`;ctx.fillRect(rng()*w,rng()*h,1+rng()*2,1+rng()*2);}
-}
-// variant: 0 punched windows, 1 ribbon, 2 glass curtain wall
-export function makeFacade(variant,litFrac,seed,aniso){
-  const rng=mulberry32(seed);
-  const cm=canvas(S,S), ce=canvas(S,S);
-  const m=cm.getContext('2d'), e=ce.getContext('2d');
-  m.fillStyle=variant===2?'#e9edf2':'#f1ece4';m.fillRect(0,0,S,S);
-  e.fillStyle='#000';e.fillRect(0,0,S,S);
-  if(variant!==2)speckle(m,rng,S,S,5000,.07);
-  const warm=['#ffd9a3','#ffcf8a','#ffe2b8','#ffc77a','#fff0d6','#ffbf6b'];
-  const cool=['#cfe6ff','#bcd9ff','#dff0ff'];
-  const tv=['#7fb2ff','#9ad0ff','#b5a4ff'];
-  for(let r=0;r<CELLS;r++)for(let c=0;c<CELLS;c++){
-    const x=c*C,y=(CELLS-1-r)*C; // r=0 -> bottom row
-    const lit=rng()<litFrac;
-    let wx,wy,ww,wh;
-    if(variant===0){wx=x+26;wy=y+22;ww=C-52;wh=C-44;}
-    else if(variant===1){wx=x+(c===0?0:0);wy=y+30;ww=C;wh=C-62;}
-    else {wx=x+3;wy=y+14;ww=C-6;wh=C-16;}
-    // glass
-    const g=m.createLinearGradient(0,wy,0,wy+wh);
-    if(variant===2){const t=rng();g.addColorStop(0,`hsl(${198+t*18},${35+t*20}%,${28+t*10}%)`);g.addColorStop(1,`hsl(${205+t*18},${40+t*20}%,${14+t*8}%)`);}
-    else{g.addColorStop(0,'#3a5169');g.addColorStop(1,'#1d2a3a');}
-    m.fillStyle=g;m.fillRect(wx,wy,ww,wh);
-    // sky reflection streak
-    m.fillStyle='rgba(255,255,255,.07)';m.beginPath();m.moveTo(wx,wy+wh);m.lineTo(wx+ww*.55,wy);m.lineTo(wx+ww*.8,wy);m.lineTo(wx+ww*.25,wy+wh);m.fill();
-    if(variant===0){
-      m.strokeStyle='#bdb5a8';m.lineWidth=4;m.strokeRect(wx,wy,ww,wh);
-      m.fillStyle='#cfc7ba';m.fillRect(wx-5,wy+wh,ww+10,6); // sill
-      m.fillStyle='rgba(0,0,0,.18)';m.fillRect(wx-5,wy+wh+6,ww+10,3);
-      m.fillStyle='#bdb5a8';m.fillRect(wx+ww/2-1.5,wy,3,wh);
-    }else if(variant===1){
-      m.fillStyle='#8f98a3';m.fillRect(x,wy,3,wh);m.fillRect(x+C/2-1.5,wy,3,wh);
-      m.fillStyle='#c8c3ba';m.fillRect(x,wy+wh,C,5);
-    }else{
-      m.fillStyle='#aab3bd';m.fillRect(x,y,C,4);m.fillRect(x,y,3,C);
-      m.fillStyle='#2f3944';m.fillRect(x,y+C-3,C,3);
-    }
-    if(lit){
-      const k=rng();const col=k<.68?warm[(rng()*warm.length)|0]:k<.9?cool[(rng()*cool.length)|0]:tv[(rng()*tv.length)|0];
-      const eg=e.createLinearGradient(0,wy,0,wy+wh);eg.addColorStop(0,col);eg.addColorStop(1,'rgba(255,170,90,.8)');
-      e.fillStyle=eg;
-      const inset=variant===2?3:variant===1?6:4;
-      e.fillRect(wx+inset,wy+inset,ww-inset*2-(variant===1?3:0),wh-inset*2);
-      if(rng()<.35){e.fillStyle='rgba(0,0,0,.45)';e.fillRect(wx+inset,wy+inset,ww-inset*2,(wh-inset*2)*(.15+rng()*.35));} // blinds
-      if(rng()<.3){e.fillStyle='rgba(0,0,0,.35)';const px=wx+inset+rng()*(ww-inset*2-14);e.fillRect(px,wy+wh*.55,10,wh*.35);} // silhouette
-      // lit glass in base map brighter
-      m.fillStyle='rgba(255,220,160,.20)';m.fillRect(wx,wy,ww,wh);
-    }
-  }
-  const map=tex(cm,{aniso}), em=tex(ce,{aniso});
-  return {map,emissive:em};
-}
+const FONT_EN='"Segoe UI","Trebuchet MS",Arial,sans-serif';
+const FONT_ZH='"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC",sans-serif';
 
 export function makeAsphalt(aniso){
   const rng=mulberry32(7);const c=canvas(512,512),x=c.getContext('2d');
-  x.fillStyle='#4a4d54';x.fillRect(0,0,512,512);
-  for(let i=0;i<26000;i++){const v=(rng()*70+30)|0;x.fillStyle=`rgba(${v},${v},${v+4},${.15+rng()*.35})`;x.fillRect(rng()*512,rng()*512,1+rng()*2.2,1+rng()*2.2);}
-  for(let i=0;i<40;i++){x.strokeStyle=`rgba(20,20,24,${.1+rng()*.15})`;x.lineWidth=1+rng()*2;x.beginPath();let px=rng()*512,py=rng()*512;x.moveTo(px,py);for(let k=0;k<6;k++){px+=(rng()-.5)*70;py+=(rng()-.5)*70;x.lineTo(px,py);}x.stroke();}
+  x.fillStyle='#5d5157';x.fillRect(0,0,512,512);
+  for(let i=0;i<30000;i++){const v=(rng()*60+50)|0;x.fillStyle=`rgba(${v+8},${v},${v+4},${.12+rng()*.3})`;x.fillRect(rng()*512,rng()*512,1+rng()*2,1+rng()*2);}
+  for(let i=0;i<14;i++){x.fillStyle=`rgba(40,30,34,${.05+rng()*.06})`;x.beginPath();x.ellipse(rng()*512,rng()*512,20+rng()*60,10+rng()*40,rng()*3,0,7);x.fill();}
+  for(let i=0;i<30;i++){x.strokeStyle=`rgba(35,26,30,${.12+rng()*.15})`;x.lineWidth=1+rng()*1.5;x.beginPath();let px=rng()*512,py=rng()*512;x.moveTo(px,py);for(let k=0;k<6;k++){px+=(rng()-.5)*60;py+=(rng()-.5)*60;x.lineTo(px,py);}x.stroke();}
   return tex(c,{aniso});
 }
+// sidewalk: pastel tiles, 1 texture = 4 m
 export function makePaving(aniso){
   const rng=mulberry32(11);const c=canvas(512,512),x=c.getContext('2d');
-  x.fillStyle='#b9b4aa';x.fillRect(0,0,512,512);
-  const n=4,s=512/n; // 4 tiles per texture -> 1m tiles when repeat = size/4
-  for(let i=0;i<n;i++)for(let j=0;j<n;j++){const v=(rng()*26-13)|0;x.fillStyle=`rgb(${185+v},${180+v},${170+v})`;x.fillRect(i*s+2,j*s+2,s-4,s-4);}
-  for(let i=0;i<9000;i++){const v=rng()<.5?60:230;x.fillStyle=`rgba(${v},${v},${v},${.05+rng()*.1})`;x.fillRect(rng()*512,rng()*512,1.5,1.5);}
-  x.strokeStyle='rgba(70,66,60,.55)';x.lineWidth=3;
-  for(let i=0;i<=n;i++){x.beginPath();x.moveTo(i*s,0);x.lineTo(i*s,512);x.stroke();x.beginPath();x.moveTo(0,i*s);x.lineTo(512,i*s);x.stroke();}
+  x.fillStyle='#d9c9c4';x.fillRect(0,0,512,512);
+  const n=8,s=512/n;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    const v=(rng()*14-7)|0,pink=(i+j)%2===0;
+    x.fillStyle=pink?`rgb(${246+v},${222+v},${222+v})`:`rgb(${244+v},${238+v},${226+v})`;
+    x.fillRect(i*s+2,j*s+2,s-4,s-4);
+  }
+  for(let i=0;i<7000;i++){const v=rng()<.5?120:255;x.fillStyle=`rgba(${v},${v-10},${v-10},${.04+rng()*.08})`;x.fillRect(rng()*512,rng()*512,1.5,1.5);}
   return tex(c,{aniso});
 }
 export function makeGrass(aniso){
   const rng=mulberry32(5);const c=canvas(512,512),x=c.getContext('2d');
-  x.fillStyle='#4f7a3a';x.fillRect(0,0,512,512);
-  for(let i=0;i<30000;i++){const g=(rng()*60)|0;x.fillStyle=`rgba(${50+g*.5},${100+g},${40+g*.3},${.25+rng()*.4})`;x.fillRect(rng()*512,rng()*512,1+rng()*2,2+rng()*4);}
-  for(let i=0;i<1200;i++){x.fillStyle=rng()<.5?'rgba(255,240,150,.7)':'rgba(255,255,255,.65)';x.fillRect(rng()*512,rng()*512,2,2);}
+  x.fillStyle='#7fc86a';x.fillRect(0,0,512,512);
+  for(let i=0;i<34000;i++){const g=(rng()*60)|0;x.fillStyle=`rgba(${90+g*.6},${160+g},${80+g*.4},${.25+rng()*.4})`;x.fillRect(rng()*512,rng()*512,1+rng()*2,2+rng()*4);}
+  const fl=['#ffe27a','#ffffff','#ffb3d1','#d9b8ff'];
+  for(let i=0;i<1400;i++){x.fillStyle=fl[(rng()*4)|0];x.globalAlpha=.75;x.fillRect(rng()*512,rng()*512,2.5,2.5);}
+  x.globalAlpha=1;
+  return tex(c,{aniso});
+}
+// white icing with sprinkles (alpha = sprinkle mask), tinted per roof in the shader
+export function makeSprinkles(aniso){
+  const rng=mulberry32(19);const c=canvas(512,512),x=c.getContext('2d');
+  x.clearRect(0,0,512,512);
+  const cols=['#ff5d8f','#ffd23f','#3fc1ff','#7bdc5a','#b57bff','#ff9a3d','#ffffff'];
+  for(let i=0;i<900;i++){
+    x.save();x.translate(rng()*512,rng()*512);x.rotate(rng()*Math.PI);
+    x.fillStyle=cols[(rng()*cols.length)|0];
+    const L=9+rng()*6;x.beginPath();x.roundRect(-L/2,-2.2,L,4.4,2.2);x.fill();x.restore();
+  }
+  return tex(c,{aniso});
+}
+// scalloped roof tiles (greyscale, tinted by vertex colour)
+export function makeShingles(aniso){
+  const c=canvas(256,256),x=c.getContext('2d');
+  x.fillStyle='#d8d8d8';x.fillRect(0,0,256,256);
+  const r=16;
+  for(let row=-1;row<10;row++){
+    const y=row*28,off=row%2?r:0;
+    for(let k=-1;k<10;k++){
+      const cx=k*r*2+off;
+      const g=x.createLinearGradient(0,y,0,y+30);g.addColorStop(0,'#c9c9c9');g.addColorStop(1,'#ffffff');
+      x.fillStyle=g;x.beginPath();x.moveTo(cx-r,y);x.lineTo(cx-r,y+14);x.arc(cx,y+14,r,Math.PI,0,true);x.lineTo(cx+r,y);x.closePath();x.fill();
+      x.strokeStyle='rgba(90,70,70,.45)';x.lineWidth=2;x.beginPath();x.arc(cx,y+14,r,Math.PI,0,true);x.stroke();
+    }
+  }
   return tex(c,{aniso});
 }
 export function makeGlow(){
@@ -93,37 +72,63 @@ export function makeGlow(){
 export function makePool(){
   const c=canvas(128,128),x=c.getContext('2d');
   const g=x.createRadialGradient(64,64,0,64,64,64);
-  g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(.3,'rgba(255,255,255,.4)');g.addColorStop(.65,'rgba(255,255,255,.1)');g.addColorStop(1,'rgba(255,255,255,0)');
+  g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(.3,'rgba(255,255,255,.42)');g.addColorStop(.65,'rgba(255,255,255,.1)');g.addColorStop(1,'rgba(255,255,255,0)');
   x.fillStyle=g;x.fillRect(0,0,128,128);
   return tex(c,{repeat:false,aniso:1});
 }
 export function makeBeam(){
   const c=canvas(256,128),x=c.getContext('2d');
-  // u along length (0 = at the car), v across
   const img=x.createImageData(256,128);
   for(let j=0;j<128;j++)for(let i=0;i<256;i++){
-    const u=i/255,v=(j/127-.5)*2;
-    const wid=.25+.75*u; const across=Math.max(0,1-Math.abs(v)/wid);
-    const a=Math.pow(1-u,1.6)*Math.pow(across,1.4);
-    const o=(j*256+i)*4;img.data[o]=255;img.data[o+1]=255;img.data[o+2]=255;img.data[o+3]=a*255;
+    const u=i/255,v=(j/127-.5)*2,wid=.25+.75*u,across=Math.max(0,1-Math.abs(v)/wid);
+    const a=Math.pow(1-u,1.6)*Math.pow(across,1.4),o=(j*256+i)*4;
+    img.data[o]=img.data[o+1]=img.data[o+2]=255;img.data[o+3]=a*255;
   }
   x.putImageData(img,0,0);
   return tex(c,{repeat:false,aniso:1});
 }
-export const SIGN_TEXT=[['RAMEN','拉面','#ff4d6d'],['COFFEE','咖啡','#ffb347'],['HOTEL','酒店','#7ee0ff'],['BOOKS','书店','#9dff8a'],['CINEMA','影院','#ff7bf0'],['TEA','茶','#6dffb0'],['PHARMACY','药房','#6fa8ff'],['DIM SUM','点心','#ffd34d'],['ARCADE','游戏厅','#c08bff'],['BAKERY','面包','#ffa07a'],['NOODLES','面馆','#ff6a3d'],['BAR','酒吧','#40e0ff'],['SUSHI','寿司','#ff5a7a'],['MARKET','超市','#a6ff5a'],['PIZZA','披萨','#ffcf40'],['SPA','水疗','#7af0e0']];
+export const SIGN_TEXT=[['CANDY','糖果','#ff4d8d'],['CUPCAKES','纸杯蛋糕','#ff9ad5'],['GELATO','冰淇淋','#5fe3ff'],['MOCHI','麻薯','#9dff8a'],['BOBA TEA','奶茶','#ffb347'],['DONUTS','甜甜圈','#ff7bf0'],['MACARONS','马卡龙','#c8a2ff'],['CHOCOLATE','巧克力','#ffcf8a'],['BAKERY','面包房','#ffd34d'],['CAFÉ','咖啡','#ff8f6b'],['BONBONS','夹心糖','#ff5a7a'],['TOFFEE','太妃糖','#ffc14d'],['CRÊPES','可丽饼','#7af0e0'],['WAFFLES','华夫饼','#ffe066'],['PIES','甜派','#a6ff5a'],['TEA HOUSE','茶馆','#6dffb0']];
+export const BLADE_TEXT=[['甜品','#ff6fa8'],['糖果铺','#ffd34d'],['蛋糕','#7ee0ff'],['奶茶','#9dff8a'],['点心','#ff9a5c'],['冰室','#8fd3ff'],['果铺','#ff7b7b'],['茶','#c8a2ff']];
+// atlas 1024x1024: top half 4x4 horizontal signs (256x128), bottom half 8 vertical blade signs (128x512)
 export function makeSigns(aniso){
-  const c=canvas(1024,512),x=c.getContext('2d');
-  x.fillStyle='#111';x.fillRect(0,0,1024,512);
+  const c=canvas(1024,1024),x=c.getContext('2d');
+  x.fillStyle='#1a1220';x.fillRect(0,0,1024,1024);
   SIGN_TEXT.forEach(([en,zh,col],i)=>{
     const cx=(i%4)*256,cy=((i/4)|0)*128;
-    x.fillStyle='#14161d';x.fillRect(cx+4,cy+4,248,120);
-    x.save();x.shadowColor=col;x.shadowBlur=14;x.strokeStyle=col;x.lineWidth=4;x.strokeRect(cx+10,cy+10,236,108);x.restore();
+    const bg=x.createLinearGradient(0,cy,0,cy+128);bg.addColorStop(0,'#2a1a30');bg.addColorStop(1,'#180f1d');
+    x.fillStyle=bg;x.beginPath();x.roundRect(cx+4,cy+4,248,120,18);x.fill();
+    x.save();x.shadowColor=col;x.shadowBlur=14;x.strokeStyle=col;x.lineWidth=4;x.beginPath();x.roundRect(cx+11,cy+11,234,106,14);x.stroke();x.restore();
     x.fillStyle=col;x.textAlign='center';x.textBaseline='middle';
     x.save();x.shadowColor=col;x.shadowBlur=12;
-    let fs=46;x.font=`800 ${fs}px "Segoe UI",Arial,sans-serif`;while(x.measureText(en).width>210&&fs>16){fs-=2;x.font=`800 ${fs}px "Segoe UI",Arial,sans-serif`;}
-    x.fillText(en,cx+128,cy+46);
-    x.font='700 32px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC",sans-serif';x.fillText(zh,cx+128,cy+88);
+    let fs=44;x.font=`900 ${fs}px ${FONT_EN}`;while(x.measureText(en).width>212&&fs>16){fs-=2;x.font=`900 ${fs}px ${FONT_EN}`;}
+    x.fillText(en,cx+128,cy+48);
+    x.font=`700 30px ${FONT_ZH}`;x.fillText(zh,cx+128,cy+90);
     x.restore();
   });
-  return tex(c,{aniso});
+  BLADE_TEXT.forEach(([zh,col],i)=>{
+    const cx=i*128,cy=512;
+    x.fillStyle='#22142a';x.beginPath();x.roundRect(cx+6,cy+6,116,500,16);x.fill();
+    x.save();x.shadowColor=col;x.shadowBlur=12;x.strokeStyle=col;x.lineWidth=4;x.beginPath();x.roundRect(cx+14,cy+14,100,484,12);x.stroke();
+    x.fillStyle=col;x.textAlign='center';x.textBaseline='middle';x.font=`800 72px ${FONT_ZH}`;
+    const ch=[...zh],step=Math.min(110,440/ch.length);
+    ch.forEach((k,j)=>x.fillText(k,cx+64,cy+256+(j-(ch.length-1)/2)*step));
+    x.restore();
+  });
+  return tex(c,{aniso,repeat:false});
+}
+// rooftop billboards 1024x512: two designs stacked
+export function makeBillboards(aniso){
+  const c=canvas(1024,512),x=c.getContext('2d');
+  const d=(y,bg1,bg2,big,small,col)=>{
+    const g=x.createLinearGradient(0,y,1024,y+256);g.addColorStop(0,bg1);g.addColorStop(1,bg2);
+    x.fillStyle=g;x.fillRect(0,y,1024,256);
+    x.fillStyle='rgba(255,255,255,.18)';for(let i=0;i<14;i++){x.beginPath();x.arc(60+i*72,y+(i%2?40:216),18,0,7);x.fill();}
+    x.save();x.textAlign='center';x.textBaseline='middle';x.shadowColor=col;x.shadowBlur=18;x.fillStyle='#fff';
+    x.font=`900 104px ${FONT_EN}`;x.fillText(big,512,y+104);
+    x.font=`800 62px ${FONT_ZH}`;x.fillStyle=col;x.fillText(small,512,y+196);x.restore();
+    x.strokeStyle='#fff';x.lineWidth=10;x.strokeRect(5,y+5,1014,246);
+  };
+  d(0,'#ff6fa8','#ffb36b','SWEET CITY','甜蜜之城 · 欢迎光临','#fff3a8');
+  d(256,'#6fd3ff','#b78bff','GELATO 24/7','冰淇淋 · 全天营业','#ffe4f2');
+  return tex(c,{aniso,repeat:false});
 }
